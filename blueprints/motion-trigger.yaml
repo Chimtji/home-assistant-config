@@ -1,0 +1,78 @@
+blueprint:
+  name: Motion-activated Action
+  description: Fire any action when motion is detected, with optional cooldown period.
+  domain: automation
+  author: Custom Blueprint
+  input:
+    motion_entity:
+      name: Motion Sensor
+      description: The motion or occupancy sensor that will trigger the action.
+      selector:
+        entity:
+          filter:
+            - device_class: occupancy
+              domain: binary_sensor
+            - device_class: motion
+              domain: binary_sensor
+    action_to_fire:
+      name: Action to Fire
+      description: The action(s) to execute when motion is detected.
+      selector:
+        action: {}
+    use_cooldown:
+      name: Use Cooldown
+      description: Enable a cooldown period before the action can trigger again.
+      default: false
+      selector:
+        boolean: {}
+    cooldown_time:
+      name: Cooldown Time
+      description: Time to wait after motion stops before allowing the action to trigger again.
+      default: 120
+      selector:
+        number:
+          min: 0
+          max: 3600
+          unit_of_measurement: seconds
+    trigger_mode:
+      name: Trigger Mode
+      description: How to handle multiple motion events (restart resets cooldown, single ignores new events during cooldown).
+      default: restart
+      selector:
+        select:
+          options:
+            - label: Restart (reset cooldown on new motion)
+              value: restart
+            - label: Single (ignore new motion during cooldown)
+              value: single
+
+# Mode is set dynamically based on user selection
+mode: !input trigger_mode
+max_exceeded: silent
+
+triggers:
+  - trigger: state
+    entity_id: !input motion_entity
+    from: "off"
+    to: "on"
+
+actions:
+  - alias: "Fire the configured action"
+    action: !input action_to_fire
+  
+  - alias: "Apply cooldown if enabled"
+    if:
+      - condition: template
+        value_template: "{{ use_cooldown }}"
+    then:
+      - alias: "Wait until there is no motion from device"
+        wait_for_trigger:
+          trigger: state
+          entity_id: !input motion_entity
+          from: "on"
+          to: "off"
+      - alias: "Wait the cooldown period"
+        delay: !input cooldown_time
+
+variables:
+  use_cooldown: !input use_cooldown
