@@ -20,7 +20,7 @@ blueprint:
       input:
         transition:
           name: Transition Time
-          description: Transition time in seconds
+          description: Transition time in miliseconds
           default: 1
           selector:
             number:
@@ -95,6 +95,7 @@ blueprint:
         nightlight_target_lights:
           name: Nightlight Target Lights
           description: The lights to control
+          default: []
           selector:
             entity:
               domain: light
@@ -111,15 +112,27 @@ blueprint:
 
 variables:
   target_lights: !input target_lights
+  nightlight_target_lights: !input nightlight_target_lights
   general_brightness: !input brightness_general
   brightness_morning: !input brightness_morning
   brightness_late_evening: !input brightness_late_evening
   brightness_night: !input brightness_night
+  nightlight_brightness: !input nightlight_brightness
   brightness_overrides: !input brightness_overrides
   transition_time: !input transition
   kelvin_value: "{{ states('input_number.daylight_kelvin') | int }}"
+  is_night: "{{ is_state('binary_sensor.is_night', 'on') }}"
+  use_nightlights: "{{ is_night and nightlight_target_lights | length > 0 }}"
+  active_lights: >
+    {% if is_night and use_nightlights %}
+      {{ nightlight_target_lights }}
+    {% else %}
+      {{ target_lights }}
+    {% endif %}
   time_based_brightness: >
-    {% if is_state('binary_sensor.is_morning', 'on') %}
+    {% if is_night and use_nightlights %}
+      {{ nightlight_brightness }}
+    {% elif is_state('binary_sensor.is_morning', 'on') %}
       {{ brightness_morning }}
     {% elif is_state('binary_sensor.is_late_evening', 'on') %}
       {{ brightness_late_evening }}
@@ -130,7 +143,7 @@ variables:
     {% endif %}
 sequence:
   - repeat:
-      for_each: "{{ target_lights }}"
+      for_each: "{{ active_lights }}"
       sequence:
         - service: light.turn_on
           target:
