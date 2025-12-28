@@ -51,9 +51,8 @@ blueprint:
               filter:
                 - domain: event
     
-    # Button Press Actions Section
-    button_press_actions:
-      name: Button Press Actions
+    lights_on_button:
+      name: Lights ON Button
       icon: mdi:gesture-tap
       input:
         button_1_press_action:
@@ -63,13 +62,24 @@ blueprint:
           selector:
             action: {}
         
-        button_1_repeat_action:
-          name: Top Left Button Hold (Lights On)
+        button_1_multiple_press_action:
+          name: Top Left Button Multiple Press
+          description: Action when button 1 is pressed and lights are on
+          default: []
+          selector:
+            action: {}
+
+        button_1_hold_action:
+          name: Top Left Button Hold
           description: Action when button 1 is held and lights are on
           default: []
           selector:
             action: {}
-        
+
+    button_press_actions:
+      name: Button Press Actions
+      icon: mdi:gesture-tap
+      input:        
         button_2_action:
           name: Bottom Left Button Press
           description: Action to run when button 2 is pressed
@@ -77,16 +87,9 @@ blueprint:
           selector:
             action: {}
         
-        button_3_press_action:
-          name: Top Right Button Press (Lights On)
-          description: Action when button 3 is pressed and lights are on
-          default: []
-          selector:
-            action: {}
-        
-        button_3_repeat_action:
-          name: Top Right Button Hold (Lights On)
-          description: Action when button 3 is held and lights are on
+        button_3_action:
+          name: Top Right Button Press
+          description: Action when button 3 is pressed
           default: []
           selector:
             action: {}
@@ -162,25 +165,13 @@ action:
             value_template: "{{ event_type == 'initial_press' }}"
         sequence: !input button_2_action
       
-      # Button 3 - Press when lights are ON (turn off)
+      # Button 3 - Custom Action
       - conditions:
           - condition: trigger
             id: button_3
           - condition: template
             value_template: "{{ event_type == 'initial_press' }}"
-          - condition: template
-            value_template: "{{ area_lights_on }}"
-        sequence: !input button_3_press_action
-      
-      # Button 3 - Repeat when lights are ON (decrease brightness)
-      - conditions:
-          - condition: trigger
-            id: button_3
-          - condition: template
-            value_template: "{{ event_type == 'repeat' }}"
-          - condition: template
-            value_template: "{{ area_lights_on }}"
-        sequence: !input button_3_repeat_action
+        sequence: !input button_3_action
       
       # Button 4 - Custom Action
       - conditions:
