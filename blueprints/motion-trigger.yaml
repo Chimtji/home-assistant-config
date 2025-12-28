@@ -58,7 +58,8 @@ triggers:
 
 actions:
   - alias: "Fire the configured action"
-    action: !input action_to_fire
+    choose: []
+    default: !input action_to_fire
   
   - alias: "Apply cooldown if enabled"
     if:
