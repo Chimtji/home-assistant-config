@@ -1,0 +1,126 @@
+blueprint:
+  name: Daytime Lighting Scene
+  description: Turn on lights with dynamic kelvin from input_number.daylight_kelvin and set a daytime lighting boolean. Supports per-light brightness overrides and time-based brightness.
+  domain: script
+  input:
+    lights:
+      name: Lights
+      icon: mdi:lightbulb-multiple
+      input:
+        target_lights:
+          name: Target Lights
+          description: The lights to control
+          selector:
+            entity:
+              domain: light
+              multiple: true
+    general:
+      name: General Settings
+      icon: mdi:cog
+      input:
+        transition:
+          name: Transition Time
+          description: Transition time in seconds
+          default: 1
+          selector:
+            number:
+              min: 0
+              max: 600
+              unit_of_measurement: "s"
+        daytime_lighting_boolean:
+          name: Daytime Lighting Boolean
+          description: Input boolean to set to ON when script runs
+          selector:
+            entity:
+              domain: input_boolean
+    brightness:
+      name: Daytime Brightness
+      icon: mdi:brightness-5
+      input:
+        brightness_general:
+          name: General Brightness Percentage
+          description: Default brightness level for all lights (0-100%)
+          default: 50
+          selector:
+            number:
+              min: 0
+              max: 100
+              unit_of_measurement: "%"
+        brightness_morning:
+          name: Morning Brightness Percentage
+          description: Brightness level during morning (0-100%)
+          default: 20
+          selector:
+            number:
+              min: 0
+              max: 100
+              unit_of_measurement: "%"
+        brightness_late_evening:
+          name: Late Evening Brightness Percentage
+          description: Brightness level during late evening (0-100%)
+          default: 30
+          selector:
+            number:
+              min: 0
+              max: 100
+              unit_of_measurement: "%"
+        brightness_night:
+          name: Night Brightness Percentage
+          description: Brightness level during night (0-100%)
+          default: 2
+          selector:
+            number:
+              min: 0
+              max: 100
+              unit_of_measurement: "%"
+    overrides:
+      name: Overrides
+      icon: mdi:pencil
+      input:
+        brightness_overrides:
+          name: Brightness Overrides (Optional)
+          description: |
+            Per-light brightness overrides in YAML format. Example:
+            light.dining_lamp_1: 70
+            light.dining_lamp_3: 30
+          default: {}
+          selector:
+            object:
+
+    nightlight:
+      name: Night Lights
+      icon: mdi:weather-night
+      
+variables:
+  target_lights: !input target_lights
+  general_brightness: !input brightness_general
+  brightness_morning: !input brightness_morning
+  brightness_late_evening: !input brightness_late_evening
+  brightness_night: !input brightness_night
+  brightness_overrides: !input brightness_overrides
+  transition_time: !input transition
+  kelvin_value: "{{ states('input_number.daylight_kelvin') | int }}"
+  time_based_brightness: >
+    {% if is_state('binary_sensor.is_morning', 'on') %}
+      {{ brightness_morning }}
+    {% elif is_state('binary_sensor.is_late_evening', 'on') %}
+      {{ brightness_late_evening }}
+    {% elif is_state('binary_sensor.is_night', 'on') %}
+      {{ brightness_night }}
+    {% else %}
+      {{ general_brightness }}
+    {% endif %}
+sequence:
+  - repeat:
+      for_each: "{{ target_lights }}"
+      sequence:
+        - service: light.turn_on
+          target:
+            entity_id: "{{ repeat.item }}"
+          data:
+            color_temp_kelvin: "{{ kelvin_value }}"
+            brightness_pct: "{{ brightness_overrides.get(repeat.item, time_based_brightness) }}"
+            transition: "{{ transition_time }}"
+  - target:
+      entity_id: !input daytime_lighting_boolean
+    action: input_boolean.turn_on
