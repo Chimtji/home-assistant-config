@@ -26,7 +26,7 @@ blueprint:
             number:
               min: 0
               max: 600
-              unit_of_measurement: "ms"
+              unit_of_measurement: "s"
         daytime_lighting_boolean:
           name: Daytime Lighting Boolean
           description: Input boolean to set to ON when script runs
