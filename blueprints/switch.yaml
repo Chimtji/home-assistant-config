@@ -1,0 +1,189 @@
+blueprint:
+  name: Wall Switch
+  description: Configure actions for a 4-button wall switch
+  domain: automation
+  input:
+    # General Settings Section
+    general:
+      name: General Settings
+      icon: mdi:cog
+      input:
+        area_select:
+          name: Area
+          description: Select the area for light control
+          selector:
+            area:
+    
+    # Button Entities Section
+    button_entities:
+      name: Button Entities
+      icon: mdi:gesture-tap-button
+      input:
+        button_1_entity:
+          name: Button 1 Entity
+          description: Select button 1 entity
+          selector:
+            entity:
+              filter:
+                - domain: event
+        
+        button_2_entity:
+          name: Button 2 Entity
+          description: Select button 2 entity
+          selector:
+            entity:
+              filter:
+                - domain: event
+        
+        button_3_entity:
+          name: Button 3 Entity
+          description: Select button 3 entity
+          selector:
+            entity:
+              filter:
+                - domain: event
+        
+        button_4_entity:
+          name: Button 4 Entity
+          description: Select button 4 entity
+          selector:
+            entity:
+              filter:
+                - domain: event
+    
+    # Button Press Actions Section
+    button_press_actions:
+      name: Button Press Actions
+      icon: mdi:gesture-tap
+      input:
+        button_1_action:
+          name: Top Left Button Press
+          description: Action to run when button 1 is pressed
+          default: []
+          selector:
+            action: {}
+        
+        button_1_repeat_action:
+          name: Top Left Button Repeat
+          description: Action to run when button 1 is held (after initial press)
+          default: []
+          selector:
+            action: {}
+        
+        button_2_action:
+          name: Bottom Left Button Press
+          description: Action to run when button 2 is pressed
+          default: []
+          selector:
+            action: {}
+        
+        button_3_action:
+          name: Top Right Button Press
+          description: Action to run when button 3 is pressed
+          default: []
+          selector:
+            action: {}
+        
+        button_4_action:
+          name: Bottom Right Button Press
+          description: Action to run when button 4 is pressed
+          default: []
+          selector:
+            action: {}
+
+mode: queued
+max: 10
+
+trigger:
+  - platform: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input button_1_entity
+    id: button_1
+  - platform: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input button_2_entity
+    id: button_2
+  - platform: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input button_3_entity
+    id: button_3
+  - platform: event
+    event_type: state_changed
+    event_data:
+      entity_id: !input button_4_entity
+    id: button_4
+
+variables:
+  button_1_pressed: "{{ this.attributes.get('button_1_pressed', false) }}"
+
+action:
+  - variables:
+      event_type: "{{ trigger.event.data.new_state.attributes.event_type }}"
+      selected_area: !input area_select
+  
+  - choose:
+      # Button 1 - Initial Press
+      - conditions:
+          - condition: trigger
+            id: button_1
+          - condition: template
+            value_template: "{{ event_type == 'initial_press' }}"
+        sequence:
+          - service: automation.set_data
+            target:
+              entity_id: "{{ this.entity_id }}"
+            data:
+              button_1_pressed: true
+          - choose:
+              - conditions: "{{ true }}"
+                sequence: !input button_1_action
+      
+      # Button 1 - Repeat (only if initial press happened)
+      - conditions:
+          - condition: trigger
+            id: button_1
+          - condition: template
+            value_template: "{{ event_type == 'repeat' }}"
+          - condition: template
+            value_template: "{{ button_1_pressed }}"
+        sequence: !input button_1_repeat_action
+      
+      # Button 1 - Release (reset state)
+      - conditions:
+          - condition: trigger
+            id: button_1
+          - condition: template
+            value_template: "{{ event_type == 'short_release' or event_type == 'long_release' }}"
+        sequence:
+          - service: automation.set_data
+            target:
+              entity_id: "{{ this.entity_id }}"
+            data:
+              button_1_pressed: false
+      
+      # Button 2 - Custom Action
+      - conditions:
+          - condition: trigger
+            id: button_2
+          - condition: template
+            value_template: "{{ event_type == 'initial_press' }}"
+        sequence: !input button_2_action
+      
+      # Button 3 - Custom Action
+      - conditions:
+          - condition: trigger
+            id: button_3
+          - condition: template
+            value_template: "{{ event_type == 'initial_press' }}"
+        sequence: !input button_3_action
+      
+      # Button 4 - Custom Action
+      - conditions:
+          - condition: trigger
+            id: button_4
+          - condition: template
+            value_template: "{{ event_type == 'initial_press' }}"
+        sequence: !input button_4_action
