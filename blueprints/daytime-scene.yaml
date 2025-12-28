@@ -26,7 +26,7 @@ blueprint:
             number:
               min: 0
               max: 600
-              unit_of_measurement: "s"
+              unit_of_measurement: "ms"
         daytime_lighting_boolean:
           name: Daytime Lighting Boolean
           description: Input boolean to set to ON when script runs
@@ -88,9 +88,27 @@ blueprint:
             object:
 
     nightlight:
-      name: Night Lights
+      name: Night Lights (Optional)
+      description: Custom nightlights in case a different scene than above should be used.
       icon: mdi:weather-night
-      
+      input:
+        nightlight_target_lights:
+          name: Nightlight Target Lights
+          description: The lights to control
+          selector:
+            entity:
+              domain: light
+              multiple: true
+        nightlight_brightness:
+          name: Nightlight Brightness
+          description: Brightness level during night (0-100%)
+          default: 2
+          selector:
+            number:
+              min: 0
+              max: 100
+              unit_of_measurement: "%"
+
 variables:
   target_lights: !input target_lights
   general_brightness: !input brightness_general
