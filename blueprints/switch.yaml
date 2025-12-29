@@ -105,7 +105,7 @@ blueprint:
           selector:
             action: {}
 
-mode: restart
+mode: single
 max_exceeded: silent
 
 trigger:
@@ -134,6 +134,7 @@ action:
   - variables:
       event_type: "{{ trigger.event.data.new_state.attributes.event_type }}"
       selected_area: !input area_select
+      button_3_entity: !input button_3_entity
       area_lights_on: >
         {{ expand(area_entities(selected_area))
            | selectattr('domain', 'eq', 'light')
@@ -169,34 +170,33 @@ action:
             value_template: "{{ event_type == 'initial_press' }}"
         sequence: !input button_2_action
       
-      # Button 3 - Single Press (wait to see if double press follows)
+      # Button 3 - Press (check for double press)
       - conditions:
           - condition: trigger
             id: button_3
           - condition: template
             value_template: "{{ event_type == 'initial_press' }}"
         sequence:
+          - variables:
+              start_time: "{{ as_timestamp(now()) }}"
           - wait_for_trigger:
               - platform: event
                 event_type: state_changed
                 event_data:
                   entity_id: !input button_3_entity
             timeout:
-              milliseconds: 500
+              milliseconds: 400
             continue_on_timeout: true
           - choose:
-              # If another press came (double press)
+              # Double press detected
               - conditions:
                   - condition: template
-                    value_template: "{{ wait.trigger != none }}"
-                  - condition: template
-                    value_template: "{{ wait.trigger.event.data.new_state.attributes.event_type == 'initial_press' }}"
+                    value_template: >
+                      {{ wait.trigger != none and 
+                         wait.trigger.event.data.new_state.attributes.event_type == 'initial_press' }}
                 sequence: !input button_3_double_press_action
-              # If timeout (single press only)
-              - conditions:
-                  - condition: template
-                    value_template: "{{ wait.trigger == none }}"
-                sequence: !input button_3_single_press_action
+            # Single press
+            default: !input button_3_single_press_action
       
       # Button 4 - Custom Action
       - conditions:
