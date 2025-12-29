@@ -146,7 +146,7 @@ action:
           - condition: trigger
             id: button_1
           - condition: template
-            value_template: "{{ event_type == 'short_release' }}"
+            value_template: "{{ event_type == 'short_press' }}"
           - condition: template
             value_template: "{{ not area_lights_on }}"
         sequence: !input button_1_press_action
@@ -174,7 +174,7 @@ action:
           - condition: trigger
             id: button_3
           - condition: template
-            value_template: "{{ event_type == 'short_release' }}"
+            value_template: "{{ event_type == 'short_press' }}"
         sequence: !input button_3_press_action
       
       # Button 3 - Hold
