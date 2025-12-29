@@ -151,7 +151,7 @@ action:
       name: Wall Switch
       message: >
         Button {{ trigger.id }}
-        data={{ trigger.event.data }}
+        data={{ trigger.event.data.new_state }}
 
   - choose:
       # Button 1 - Press
