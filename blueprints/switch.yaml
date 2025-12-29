@@ -138,9 +138,7 @@ action:
       event_type: "{{ trigger.event.data.new_state.attributes.event_type }}"
       last_event_type: >
         {{ trigger.event.data.old_state.attributes.event_type
-           if trigger.event.data.old_state is not none
-           and trigger.event.data.old_state.attributes.event_type is defined
-           else none }}
+            if trigger.event.data.old_state is not none else none }}
       selected_area: !input area_select
       area_lights_on: >
         {{ expand(area_entities(selected_area))
@@ -162,7 +160,8 @@ action:
             id: button_1
           - condition: template
             value_template: >
-              {{ event_type == 'short_press' }}
+              {{ event_type == 'short_release'
+                and last_event_type != 'long_press' }}
           - condition: template
             value_template: "{{ not area_lights_on }}"
         sequence: !input button_1_press_action
@@ -183,8 +182,8 @@ action:
             id: button_2
           - condition: template
             value_template: >
-              {{ event_type == 'short_press'
-                and last_event_type != 'long_release' }}
+              {{ event_type == 'short_release'
+                and last_event_type != 'long_press' }}
         sequence: !input button_2_action
 
       # Button 3 - Press
@@ -193,8 +192,8 @@ action:
             id: button_3
           - condition: template
             value_template: >
-              {{ event_type == 'short_press'
-                and last_event_type != 'long_release' }}
+              {{ event_type == 'short_release'
+                and last_event_type != 'long_press' }}
         sequence: !input button_3_press_action
 
       # Button 3 - Hold
@@ -211,6 +210,6 @@ action:
             id: button_4
           - condition: template
             value_template: >
-              {{ event_type == 'short_press'
-                and last_event_type != 'long_release' }}
+              {{ event_type == 'short_release'
+                and last_event_type != 'long_press' }}
         sequence: !input button_4_action
