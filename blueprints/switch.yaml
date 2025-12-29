@@ -160,7 +160,7 @@ action:
             id: button_1
           - condition: template
             value_template: >
-              {{ event_type == 'short_release'
+              {{ event_type == 'initial_press'
                 and last_event_type != 'long_press' }}
           - condition: template
             value_template: "{{ not area_lights_on }}"
@@ -171,7 +171,7 @@ action:
           - condition: trigger
             id: button_1
           - condition: template
-            value_template: "{{ event_type == 'long_release' }}"
+            value_template: "{{ event_type == 'long_press' }}"
           - condition: template
             value_template: "{{ area_lights_on }}"
         sequence: !input button_1_multiple_press_action
@@ -182,7 +182,7 @@ action:
             id: button_2
           - condition: template
             value_template: >
-              {{ event_type == 'short_release'
+              {{ event_type == 'initial_press'
                 and last_event_type != 'long_press' }}
         sequence: !input button_2_action
 
@@ -201,7 +201,7 @@ action:
           - condition: trigger
             id: button_3
           - condition: template
-            value_template: "{{ event_type == 'long_release' }}"
+            value_template: "{{ event_type == 'long_press' }}"
         sequence: !input button_3_hold_action
 
       # Button 4 - Custom Action
@@ -210,6 +210,6 @@ action:
             id: button_4
           - condition: template
             value_template: >
-              {{ event_type == 'short_release'
+              {{ event_type == 'initial_press'
                 and last_event_type != 'long_press' }}
         sequence: !input button_4_action
