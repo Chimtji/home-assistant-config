@@ -52,37 +52,37 @@ blueprint:
                 - domain: event
     
     lights_on_button:
-      name: Lights ON Button
+      name: Lights ON Button (Button 1)
       icon: mdi:gesture-tap
       input:
         button_1_press_action:
-          name: Top Left Button Press (Lights Off)
+          name: Button 1 Press (Lights Off)
           description: Action when button 1 is pressed and lights are off
           default: []
           selector:
             action: {}
         
         button_1_multiple_press_action:
-          name: Top Left Button Press (Lights On)
-          description: Action when button 1 is pressed and lights are on
+          name: Button 1 Press (Lights On)
+          description: Action when button 1 is pressed and lights are on - increase brightness
           default: []
           selector:
             action: {}
 
     lights_off_button:
-      name: Lights OFF Button
+      name: Lights Control Button (Button 3)
       icon: mdi:gesture-tap
       input:
-        button_3_single_press_action:
-          name: Top Right Button Single Press
-          description: Action when button 3 is pressed once
+        button_3_press_action:
+          name: Button 3 Press
+          description: Action when button 3 is pressed - decrease brightness
           default: []
           selector:
             action: {}
 
-        button_3_double_press_action:
-          name: Top Right Button Double Press
-          description: Action when button 3 is pressed twice quickly
+        button_3_hold_action:
+          name: Button 3 Hold
+          description: Action when button 3 is held - turn off lights
           default: []
           selector:
             action: {}
@@ -105,8 +105,8 @@ blueprint:
           selector:
             action: {}
 
-mode: single
-max_exceeded: silent
+mode: queued
+max: 10
 
 trigger:
   - platform: event
@@ -134,7 +134,6 @@ action:
   - variables:
       event_type: "{{ trigger.event.data.new_state.attributes.event_type }}"
       selected_area: !input area_select
-      button_3_entity: !input button_3_entity
       area_lights_on: >
         {{ expand(area_entities(selected_area))
            | selectattr('domain', 'eq', 'light')
@@ -152,7 +151,7 @@ action:
             value_template: "{{ not area_lights_on }}"
         sequence: !input button_1_press_action
       
-      # Button 1 - Press when lights are ON
+      # Button 1 - Press when lights are ON (increase brightness)
       - conditions:
           - condition: trigger
             id: button_1
@@ -170,33 +169,21 @@ action:
             value_template: "{{ event_type == 'initial_press' }}"
         sequence: !input button_2_action
       
-      # Button 3 - Press (check for double press)
+      # Button 3 - Press (decrease brightness)
       - conditions:
           - condition: trigger
             id: button_3
           - condition: template
             value_template: "{{ event_type == 'initial_press' }}"
-        sequence:
-          - variables:
-              start_time: "{{ as_timestamp(now()) }}"
-          - wait_for_trigger:
-              - platform: event
-                event_type: state_changed
-                event_data:
-                  entity_id: !input button_3_entity
-            timeout:
-              milliseconds: 400
-            continue_on_timeout: true
-          - choose:
-              # Double press detected
-              - conditions:
-                  - condition: template
-                    value_template: >
-                      {{ wait.trigger != none and 
-                         wait.trigger.event.data.new_state.attributes.event_type == 'initial_press' }}
-                sequence: !input button_3_double_press_action
-            # Single press
-            default: !input button_3_single_press_action
+        sequence: !input button_3_press_action
+      
+      # Button 3 - Hold/Repeat (turn off lights)
+      - conditions:
+          - condition: trigger
+            id: button_3
+          - condition: template
+            value_template: "{{ event_type == 'repeat' }}"
+        sequence: !input button_3_hold_action
       
       # Button 4 - Custom Action
       - conditions:
