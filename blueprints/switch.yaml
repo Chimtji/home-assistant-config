@@ -141,22 +141,22 @@ action:
            | list | count > 0 }}
   
   - choose:
-      # Button 1 - Press when lights are OFF (turn on)
+      # Button 1 - Press
       - conditions:
           - condition: trigger
             id: button_1
           - condition: template
-            value_template: "{{ event_type == 'initial_press' }}"
+            value_template: "{{ event_type == 'short_release' }}"
           - condition: template
             value_template: "{{ not area_lights_on }}"
         sequence: !input button_1_press_action
       
-      # Button 1 - Press when lights are ON (increase brightness)
+      # Button 1 - Hold
       - conditions:
           - condition: trigger
             id: button_1
           - condition: template
-            value_template: "{{ event_type == 'initial_press' }}"
+            value_template: "{{ event_type == 'repeat' }}"
           - condition: template
             value_template: "{{ area_lights_on }}"
         sequence: !input button_1_multiple_press_action
@@ -169,15 +169,15 @@ action:
             value_template: "{{ event_type == 'initial_press' }}"
         sequence: !input button_2_action
       
-      # Button 3 - Press (decrease brightness)
+      # Button 3 - Press
       - conditions:
           - condition: trigger
             id: button_3
           - condition: template
-            value_template: "{{ event_type == 'initial_press' }}"
+            value_template: "{{ event_type == 'short_release' }}"
         sequence: !input button_3_press_action
       
-      # Button 3 - Hold/Repeat (turn off lights)
+      # Button 3 - Hold
       - conditions:
           - condition: trigger
             id: button_3
