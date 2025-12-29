@@ -155,7 +155,7 @@ action:
             id: button_1
           - condition: template
             value_template: >
-              {{ event_type == 'short_press' }}
+              {{ event_type == 'short_release' }}
           - condition: template
             value_template: "{{ not area_lights_on }}"
         sequence: !input button_1_press_action
