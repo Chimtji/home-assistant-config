@@ -73,16 +73,16 @@ blueprint:
       name: Lights OFF Button
       icon: mdi:gesture-tap
       input:
-        button_3_press_action:
+        button_3_single_press_action:
           name: Top Right Button Single Press
-          description: Action when button 3 is pressed once (not held)
+          description: Action when button 3 is pressed once
           default: []
           selector:
             action: {}
 
-        button_3_hold_action:
-          name: Top Right Button Hold
-          description: Action when button 3 is held (repeat)
+        button_3_double_press_action:
+          name: Top Right Button Double Press
+          description: Action when button 3 is pressed twice quickly
           default: []
           selector:
             action: {}
@@ -169,7 +169,7 @@ action:
             value_template: "{{ event_type == 'initial_press' }}"
         sequence: !input button_2_action
       
-      # Button 3 - Initial press (wait to see if hold follows)
+      # Button 3 - Single Press (wait to see if double press follows)
       - conditions:
           - condition: trigger
             id: button_3
@@ -182,23 +182,21 @@ action:
                 event_data:
                   entity_id: !input button_3_entity
             timeout:
-              milliseconds: 2000
+              milliseconds: 500
             continue_on_timeout: true
           - choose:
-              # If timeout (no repeat event), do the single press action
+              # If another press came (double press)
+              - conditions:
+                  - condition: template
+                    value_template: "{{ wait.trigger != none }}"
+                  - condition: template
+                    value_template: "{{ wait.trigger.event.data.new_state.attributes.event_type == 'initial_press' }}"
+                sequence: !input button_3_double_press_action
+              # If timeout (single press only)
               - conditions:
                   - condition: template
                     value_template: "{{ wait.trigger == none }}"
-                sequence: !input button_3_press_action
-              # If repeat event came, do nothing (let the repeat handler take over)
-      
-      # Button 3 - Hold (repeat) - always execute
-      - conditions:
-          - condition: trigger
-            id: button_3
-          - condition: template
-            value_template: "{{ event_type == 'repeat' }}"
-        sequence: !input button_3_hold_action
+                sequence: !input button_3_single_press_action
       
       # Button 4 - Custom Action
       - conditions:
