@@ -182,7 +182,7 @@ action:
                 event_data:
                   entity_id: !input button_3_entity
             timeout:
-              milliseconds: 1000
+              milliseconds: 2000
             continue_on_timeout: true
           - choose:
               # If timeout (no repeat event), do the single press action
