@@ -148,6 +148,13 @@ action:
            | selectattr('state', 'eq', 'on')
            | list | count > 0 }}
 
+  - service: logbook.log
+    data:
+      name: Wall Switch
+      message: >
+        Button {{ trigger.id }}
+        data={{ trigger.event.data }}
+
   - choose:
       # Button 1 - Press
       - conditions:
