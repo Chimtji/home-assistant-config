@@ -13,7 +13,7 @@ blueprint:
           description: Select the area for light control
           selector:
             area:
-    
+
     # Button Entities Section
     button_entities:
       name: Button Entities
@@ -26,7 +26,7 @@ blueprint:
             entity:
               filter:
                 - domain: event
-        
+
         button_2_entity:
           name: Button 2 Entity
           description: Select button 2 entity
@@ -34,7 +34,7 @@ blueprint:
             entity:
               filter:
                 - domain: event
-        
+
         button_3_entity:
           name: Button 3 Entity
           description: Select button 3 entity
@@ -42,7 +42,7 @@ blueprint:
             entity:
               filter:
                 - domain: event
-        
+
         button_4_entity:
           name: Button 4 Entity
           description: Select button 4 entity
@@ -50,7 +50,7 @@ blueprint:
             entity:
               filter:
                 - domain: event
-    
+
     lights_on_button:
       name: Lights ON Button (Button 1)
       icon: mdi:gesture-tap
@@ -61,7 +61,7 @@ blueprint:
           default: []
           selector:
             action: {}
-        
+
         button_1_multiple_press_action:
           name: Button 1 Press (Lights On)
           description: Action when button 1 is pressed and lights are on - increase brightness
@@ -90,14 +90,14 @@ blueprint:
     button_press_actions:
       name: Button Press Actions
       icon: mdi:gesture-tap
-      input:        
+      input:
         button_2_action:
           name: Bottom Left Button Press
           description: Action to run when button 2 is pressed
           default: []
           selector:
             action: {}
-        
+
         button_4_action:
           name: Bottom Right Button Press
           description: Action to run when button 4 is pressed
@@ -114,16 +114,19 @@ trigger:
     event_data:
       entity_id: !input button_1_entity
     id: button_1
+
   - platform: event
     event_type: state_changed
     event_data:
       entity_id: !input button_2_entity
     id: button_2
+
   - platform: event
     event_type: state_changed
     event_data:
       entity_id: !input button_3_entity
     id: button_3
+
   - platform: event
     event_type: state_changed
     event_data:
@@ -133,24 +136,31 @@ trigger:
 action:
   - variables:
       event_type: "{{ trigger.event.data.new_state.attributes.event_type }}"
+      last_event_type: >
+        {{ trigger.event.data.old_state.attributes.event_type
+           if trigger.event.data.old_state is not none
+           and trigger.event.data.old_state.attributes.event_type is defined
+           else none }}
       selected_area: !input area_select
       area_lights_on: >
         {{ expand(area_entities(selected_area))
            | selectattr('domain', 'eq', 'light')
            | selectattr('state', 'eq', 'on')
            | list | count > 0 }}
-  
+
   - choose:
       # Button 1 - Press
       - conditions:
           - condition: trigger
             id: button_1
           - condition: template
-            value_template: "{{ event_type == 'short_press' }}"
+            value_template: >
+              {{ event_type == 'short_press'
+                 and last_event_type not in ['repeat', 'long_release'] }}
           - condition: template
             value_template: "{{ not area_lights_on }}"
         sequence: !input button_1_press_action
-      
+
       # Button 1 - Hold
       - conditions:
           - condition: trigger
@@ -160,23 +170,27 @@ action:
           - condition: template
             value_template: "{{ area_lights_on }}"
         sequence: !input button_1_multiple_press_action
-      
+
       # Button 2 - Custom Action
       - conditions:
           - condition: trigger
             id: button_2
           - condition: template
-            value_template: "{{ event_type == 'short_press' }}"
+            value_template: >
+              {{ event_type == 'short_press'
+                 and last_event_type not in ['repeat', 'long_release'] }}
         sequence: !input button_2_action
-      
+
       # Button 3 - Press
       - conditions:
           - condition: trigger
             id: button_3
           - condition: template
-            value_template: "{{ event_type == 'short_press' }}"
+            value_template: >
+              {{ event_type == 'short_press'
+                 and last_event_type not in ['repeat', 'long_release'] }}
         sequence: !input button_3_press_action
-      
+
       # Button 3 - Hold
       - conditions:
           - condition: trigger
@@ -184,11 +198,13 @@ action:
           - condition: template
             value_template: "{{ event_type == 'long_release' }}"
         sequence: !input button_3_hold_action
-      
+
       # Button 4 - Custom Action
       - conditions:
           - condition: trigger
             id: button_4
           - condition: template
-            value_template: "{{ event_type == 'short_press' }}"
+            value_template: >
+              {{ event_type == 'short_press'
+                 and last_event_type not in ['repeat', 'long_release'] }}
         sequence: !input button_4_action
