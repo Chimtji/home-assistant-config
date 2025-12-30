@@ -152,6 +152,3 @@ sequence:
             color_temp_kelvin: "{{ kelvin_value }}"
             brightness_pct: "{{ brightness_overrides.get(repeat.item, time_based_brightness) }}"
             transition: "{{ transition_time }}"
-  - target:
-      entity_id: !input daytime_lighting_boolean
-    action: input_boolean.turn_on
