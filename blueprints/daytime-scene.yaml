@@ -33,6 +33,13 @@ blueprint:
           selector:
             entity:
               domain: input_boolean
+        daytime_room_brightness:
+          name: Daytime Room Brightness Helper
+          description: input_number to store current brightness value for use in automations
+          default: ""
+          selector:
+            entity:
+              domain: input_number
     brightness:
       name: Daytime Brightness
       icon: mdi:brightness-5
@@ -119,6 +126,7 @@ variables:
   brightness_night: !input brightness_night
   nightlight_brightness: !input nightlight_brightness
   brightness_overrides: !input brightness_overrides
+  daytime_room_brightness: !input daytime_room_brightness
   transition_time: !input transition
   kelvin_value: "{{ states('input_number.daylight_kelvin') | int }}"
   is_night: "{{ is_state('binary_sensor.is_night', 'on') }}"
@@ -142,6 +150,16 @@ variables:
       {{ general_brightness }}
     {% endif %}
 sequence:
+  - if:
+      - condition: template
+        value_template: "{{ daytime_room_brightness != '' }}"
+    then:
+      - service: input_number.set_value
+        target:
+          entity_id: "{{ daytime_room_brightness }}"
+        data:
+          value: "{{ time_based_brightness }}"
+
   - repeat:
       for_each: "{{ active_lights }}"
       sequence:
