@@ -1,6 +1,6 @@
 blueprint:
   name: Motion-activated Action
-  description: Fire action when motion is detected.
+  description: Fire action when motion is detected and luminance is below threshold.
   domain: automation
   author: Custom Blueprint
   input:
@@ -14,6 +14,23 @@ blueprint:
               domain: binary_sensor
             - device_class: motion
               domain: binary_sensor
+    lux_entity:
+      name: Luminance Sensor
+      description: The illuminance sensor to check light level.
+      selector:
+        entity:
+          filter:
+            - device_class: illuminance
+              domain: sensor
+    lux_threshold:
+      name: Luminance Threshold
+      description: Maximum luminance (lx) at which the action should trigger. Action only fires if current luminance is below this value.
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 1000
+          unit_of_measurement: lx
     action_on_motion:
       name: Action motion detected
       description: The action(s) to execute when motion is detected.
@@ -40,10 +57,15 @@ mode: restart
 max_exceeded: silent
 
 triggers:
-  trigger: state
-  entity_id: !input motion_entity
-  from: "off"
-  to: "on"
+  - trigger: state
+    entity_id: !input motion_entity
+    from: "off"
+    to: "on"
+
+conditions:
+  - condition: numeric_state
+    entity_id: !input lux_entity
+    below: !input lux_threshold
 
 actions:
   - alias: "Fire on-motion action"
