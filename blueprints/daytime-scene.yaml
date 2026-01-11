@@ -20,26 +20,37 @@ blueprint:
       input:
         transition:
           name: Transition Time
-          description: Transition time in miliseconds
+          description: Transition time in seconds
           default: 1
           selector:
             number:
               min: 0
               max: 600
               unit_of_measurement: "s"
-        daytime_lighting_boolean:
-          name: Daytime Lighting Boolean
-          description: Input boolean to set to ON when script runs
-          selector:
-            entity:
-              domain: input_boolean
-        daytime_room_brightness:
-          name: Daytime Room Brightness Helper
-          description: input_number to store current brightness value for use in automations
-          default: ""
+        daytime_kelvin:
+          name: Daytime Kelvin
+          description: The kelvin value appropriate for the time of day
           selector:
             entity:
               domain: input_number
+        room_brightness:
+          name: Daytime Room Brightness
+          description: The Daytime brightness for the room
+          selector:
+            entity:
+              domain: input_number
+        use_daytime_temp:
+          name: Daytime Temperature Boolean
+          description: The enabler for daytime temperature
+          selector:
+            entity:
+              domain: input_boolean
+        use_daytime_brightness:
+          name: Daytime Brightness Boolean
+          description: The enabler for daytime room brightness
+          selector:
+            entity:
+              domain: input_boolean
     overrides:
       name: Overrides
       icon: mdi:pencil
@@ -48,12 +59,11 @@ blueprint:
           name: Brightness Overrides (Optional)
           description: |
             Per-light brightness overrides in YAML format. Example:
-            light.dining_lamp_1: 70
-            light.dining_lamp_3: 30
+              light.dining_lamp_1: 70
+              light.dining_lamp_3: 30
           default: {}
           selector:
             object:
-
     nightlight:
       name: Night Lights (Optional)
       description: Custom nightlights in case a different scene than above should be used.
@@ -81,18 +91,30 @@ variables:
   target_lights: !input target_lights
   nightlight_target_lights: !input nightlight_target_lights
   brightness_overrides: !input brightness_overrides
-  daytime_room_brightness: !input daytime_room_brightness
+  room_brightness: !input room_brightness
+  daytime_kelvin: !input daytime_kelvin
   transition_time: !input transition
-  kelvin_value: "{{ states('input_number.daylight_kelvin') | int }}"
+  use_daytime_temp: !input use_daytime_temp
+  use_daytime_brightness: !input use_daytime_brightness
+  nightlight_brightness: !input nightlight_brightness
   is_night: "{{ is_state('binary_sensor.is_night', 'on') }}"
   use_nightlights: "{{ is_night and nightlight_target_lights | length > 0 }}"
   active_lights: >
-    {% if is_night and use_nightlights %}
+    {% if use_nightlights %}
       {{ nightlight_target_lights }}
     {% else %}
       {{ target_lights }}
     {% endif %}
+
 sequence:
+  # Always enable the daytime temperature and brightness booleans
+  - service: input_boolean.turn_on
+    target:
+      entity_id:
+        - "{{ use_daytime_temp }}"
+        - "{{ use_daytime_brightness }}"
+
+  # Turn on lights with appropriate settings
   - repeat:
       for_each: "{{ active_lights }}"
       sequence:
@@ -100,6 +122,11 @@ sequence:
           target:
             entity_id: "{{ repeat.item }}"
           data:
-            color_temp_kelvin: "{{ kelvin_value }}"
-            brightness_pct: "{{ brightness_overrides.get(repeat.item, daytime_room_brightness) }}"
+            color_temp_kelvin: "{{ states(daytime_kelvin) | int }}"
+            brightness_pct: >
+              {% if use_nightlights %}
+                {{ nightlight_brightness | float }}
+              {% else %}
+                {{ brightness_overrides.get(repeat.item, states(room_brightness) | float(50)) | float }}
+              {% endif %}
             transition: "{{ transition_time }}"
