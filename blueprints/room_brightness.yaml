@@ -12,7 +12,7 @@ blueprint:
     morning_brightness:
       name: Morning Brightness
       description: Brightness value for morning period
-      default: 20
+      default: 30
       selector:
         number:
           min: 0
@@ -21,7 +21,7 @@ blueprint:
     noon_brightness:
       name: Noon Brightness
       description: Brightness value for noon period
-      default: 30
+      default: 45
       selector:
         number:
           min: 0
@@ -30,7 +30,7 @@ blueprint:
     day_brightness:
       name: Day Brightness
       description: Brightness value for day period
-      default: 50
+      default: 70
       selector:
         number:
           min: 0
@@ -39,7 +39,7 @@ blueprint:
     evening_brightness:
       name: Evening Brightness
       description: Brightness value for evening period
-      default: 35
+      default: 40
       selector:
         number:
           min: 0
