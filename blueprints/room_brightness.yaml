@@ -1,0 +1,143 @@
+blueprint:
+  name: Room Brightness by Time Period
+  description: Updates room brightness based on time of day periods (morning, noon, day, evening, late evening, night)
+  domain: automation
+  input:
+    target_input_number:
+      name: Target Input Number
+      description: The input_number entity to update with brightness values
+      selector:
+        entity:
+          domain: input_number
+    morning_brightness:
+      name: Morning Brightness
+      description: Brightness value for morning period
+      default: 20
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+    noon_brightness:
+      name: Noon Brightness
+      description: Brightness value for noon period
+      default: 30
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+    day_brightness:
+      name: Day Brightness
+      description: Brightness value for day period
+      default: 50
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+    evening_brightness:
+      name: Evening Brightness
+      description: Brightness value for evening period
+      default: 35
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+    late_evening_brightness:
+      name: Late Evening Brightness
+      description: Brightness value for late evening period
+      default: 30
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+    night_brightness:
+      name: Night Brightness
+      description: Brightness value for night period
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+
+triggers:
+  - trigger: state
+    entity_id:
+      - binary_sensor.is_morning
+      - binary_sensor.is_day
+      - binary_sensor.is_noon
+      - binary_sensor.is_evening
+      - binary_sensor.is_late_evening
+      - binary_sensor.is_night
+    to: "on"
+
+conditions: []
+
+actions:
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.is_morning
+            state: "on"
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: !input morning_brightness
+            target:
+              entity_id: !input target_input_number
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.is_noon
+            state: "on"
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: !input noon_brightness
+            target:
+              entity_id: !input target_input_number
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.is_day
+            state: "on"
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: !input day_brightness
+            target:
+              entity_id: !input target_input_number
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.is_evening
+            state: "on"
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: !input evening_brightness
+            target:
+              entity_id: !input target_input_number
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.is_late_evening
+            state: "on"
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: !input late_evening_brightness
+            target:
+              entity_id: !input target_input_number
+      - conditions:
+          - condition: state
+            entity_id: binary_sensor.is_night
+            state: "on"
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: !input night_brightness
+            target:
+              entity_id: !input target_input_number
+
+mode: single
