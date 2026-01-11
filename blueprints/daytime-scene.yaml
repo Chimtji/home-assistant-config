@@ -40,46 +40,6 @@ blueprint:
           selector:
             entity:
               domain: input_number
-    brightness:
-      name: Daytime Brightness
-      icon: mdi:brightness-5
-      input:
-        brightness_general:
-          name: General Brightness Percentage
-          description: Default brightness level for all lights (0-100%)
-          default: 50
-          selector:
-            number:
-              min: 0
-              max: 100
-              unit_of_measurement: "%"
-        brightness_morning:
-          name: Morning Brightness Percentage
-          description: Brightness level during morning (0-100%)
-          default: 20
-          selector:
-            number:
-              min: 0
-              max: 100
-              unit_of_measurement: "%"
-        brightness_late_evening:
-          name: Late Evening Brightness Percentage
-          description: Brightness level during late evening (0-100%)
-          default: 30
-          selector:
-            number:
-              min: 0
-              max: 100
-              unit_of_measurement: "%"
-        brightness_night:
-          name: Night Brightness Percentage
-          description: Brightness level during night (0-100%)
-          default: 2
-          selector:
-            number:
-              min: 0
-              max: 100
-              unit_of_measurement: "%"
     overrides:
       name: Overrides
       icon: mdi:pencil
@@ -120,11 +80,6 @@ blueprint:
 variables:
   target_lights: !input target_lights
   nightlight_target_lights: !input nightlight_target_lights
-  general_brightness: !input brightness_general
-  brightness_morning: !input brightness_morning
-  brightness_late_evening: !input brightness_late_evening
-  brightness_night: !input brightness_night
-  nightlight_brightness: !input nightlight_brightness
   brightness_overrides: !input brightness_overrides
   daytime_room_brightness: !input daytime_room_brightness
   transition_time: !input transition
@@ -137,29 +92,7 @@ variables:
     {% else %}
       {{ target_lights }}
     {% endif %}
-  time_based_brightness: >
-    {% if is_night and use_nightlights %}
-      {{ nightlight_brightness }}
-    {% elif is_state('binary_sensor.is_morning', 'on') %}
-      {{ brightness_morning }}
-    {% elif is_state('binary_sensor.is_late_evening', 'on') %}
-      {{ brightness_late_evening }}
-    {% elif is_state('binary_sensor.is_night', 'on') %}
-      {{ brightness_night }}
-    {% else %}
-      {{ general_brightness }}
-    {% endif %}
 sequence:
-  - if:
-      - condition: template
-        value_template: "{{ daytime_room_brightness != '' }}"
-    then:
-      - service: input_number.set_value
-        target:
-          entity_id: "{{ daytime_room_brightness }}"
-        data:
-          value: "{{ time_based_brightness }}"
-
   - repeat:
       for_each: "{{ active_lights }}"
       sequence:
@@ -168,5 +101,5 @@ sequence:
             entity_id: "{{ repeat.item }}"
           data:
             color_temp_kelvin: "{{ kelvin_value }}"
-            brightness_pct: "{{ brightness_overrides.get(repeat.item, time_based_brightness) }}"
+            brightness_pct: "{{ brightness_overrides.get(repeat.item, daytime_room_brightness) }}"
             transition: "{{ transition_time }}"
