@@ -3,17 +3,6 @@ blueprint:
   description: Configure actions for a 4-button wall switch
   domain: automation
   input:
-    # General Settings Section
-    general:
-      name: General Settings
-      icon: mdi:cog
-      input:
-        area_select:
-          name: Area
-          description: Select the area for light control
-          selector:
-            area:
-
     # Button Entities Section
     button_entities:
       name: Button Entities
@@ -51,55 +40,33 @@ blueprint:
               filter:
                 - domain: event
 
-    lights_on_button:
-      name: Lights ON Button (Button 1)
-      icon: mdi:gesture-tap
-      input:
-        button_1_press_action:
-          name: Button 1 Press (Lights Off)
-          description: Action when button 1 is pressed and lights are off
-          default: []
-          selector:
-            action: {}
-
-        button_1_multiple_press_action:
-          name: Button 1 Press (Lights On)
-          description: Action when button 1 is pressed and lights are on - increase brightness
-          default: []
-          selector:
-            action: {}
-
-    lights_off_button:
-      name: Lights Control Button (Button 3)
-      icon: mdi:gesture-tap
-      input:
-        button_3_press_action:
-          name: Button 3 Press
-          description: Action when button 3 is pressed - decrease brightness
-          default: []
-          selector:
-            action: {}
-
-        button_3_hold_action:
-          name: Button 3 Hold
-          description: Action when button 3 is held - turn off lights
-          default: []
-          selector:
-            action: {}
-
     button_press_actions:
       name: Button Press Actions
       icon: mdi:gesture-tap
       input:
+        button_1_action:
+          name: Button 1 Press
+          description: Action to run when button 1 is pressed
+          default: []
+          selector:
+            action: {}
+
         button_2_action:
-          name: Bottom Left Button Press
+          name: Button 2 Press
           description: Action to run when button 2 is pressed
           default: []
           selector:
             action: {}
 
+        button_3_action:
+          name: Button 3 Press
+          description: Action to run when button 3 is pressed
+          default: []
+          selector:
+            action: {}
+
         button_4_action:
-          name: Bottom Right Button Press
+          name: Button 4 Press
           description: Action to run when button 4 is pressed
           default: []
           selector:
@@ -134,81 +101,28 @@ trigger:
     id: button_4
 
 action:
-  - variables:
-      event_type: "{{ trigger.event.data.new_state.attributes.event_type }}"
-      last_event_type: >
-        {{ trigger.event.data.old_state.attributes.event_type
-            if trigger.event.data.old_state is not none else none }}
-      selected_area: !input area_select
-      area_lights_on: >
-        {{ expand(area_entities(selected_area))
-           | selectattr('domain', 'eq', 'light')
-           | selectattr('state', 'eq', 'on')
-           | list | count > 0 }}
-
   - service: logbook.log
     data:
       name: Wall Switch
-      message: >
-        Button {{ trigger.id }}
-        new={{ trigger.event.data.new_state.attributes.event_type }}
-        old={{ trigger.event.data.old_state.attributes.event_type }}
+      message: "Button {{ trigger.id }} pressed"
 
   - choose:
-      # Button 1 - Press
       - conditions:
           - condition: trigger
             id: button_1
-          - condition: template
-            value_template: >
-              {{ event_type == 'initial_press'
-                and last_event_type != 'repeat' }}
-        sequence: !input button_1_press_action
+        sequence: !input button_1_action
 
-      # Button 1 - Hold
-      - conditions:
-          - condition: trigger
-            id: button_1
-          - condition: template
-            value_template: "{{ event_type == 'repeat' }}"
-          - condition: template
-            value_template: "{{ area_lights_on }}"
-        sequence: !input button_1_multiple_press_action
-
-      # Button 2 - Custom Action
       - conditions:
           - condition: trigger
             id: button_2
-          - condition: template
-            value_template: >
-              {{ event_type == 'initial_press'
-                and last_event_type != 'repeat' }}
         sequence: !input button_2_action
 
-      # Button 3 - Press
       - conditions:
           - condition: trigger
             id: button_3
-          - condition: template
-            value_template: >
-              {{ event_type == 'short_release'
-                and last_event_type != 'repeat' }}
-        sequence: !input button_3_press_action
+        sequence: !input button_3_action
 
-      # Button 3 - Hold
-      - conditions:
-          - condition: trigger
-            id: button_3
-          - condition: template
-            value_template: "{{ event_type == 'repeat' }}"
-        sequence: !input button_3_hold_action
-
-      # Button 4 - Custom Action
       - conditions:
           - condition: trigger
             id: button_4
-          - condition: template
-            value_template: >
-              {{ event_type == 'initial_press'
-                and last_event_type != 'repeat' }}
         sequence: !input button_4_action
