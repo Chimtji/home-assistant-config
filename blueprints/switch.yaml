@@ -45,28 +45,28 @@ blueprint:
       icon: mdi:gesture-tap
       input:
         button_1_action:
-          name: Button 1 Press
+          name: Top Left Button Press
           description: Action to run when button 1 is pressed
           default: []
           selector:
             action: {}
 
-        button_2_action:
-          name: Button 2 Press
-          description: Action to run when button 2 is pressed
-          default: []
-          selector:
-            action: {}
-
         button_3_action:
-          name: Button 3 Press
+          name: Top Right Button Press
           description: Action to run when button 3 is pressed
           default: []
           selector:
             action: {}
 
+        button_2_action:
+          name: Bottom Left Button Press
+          description: Action to run when button 2 is pressed
+          default: []
+          selector:
+            action: {}
+
         button_4_action:
-          name: Button 4 Press
+          name: Bottom Right Button Press
           description: Action to run when button 4 is pressed
           default: []
           selector:
