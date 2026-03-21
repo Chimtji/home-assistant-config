@@ -76,28 +76,25 @@ mode: queued
 max: 10
 
 trigger:
-  - platform: event
-    event_type: initial_press
-    event_data:
-      entity_id: !input button_1_entity
+  - platform: state
+    entity_id: !input button_1_entity
+    attribute: event_type
+    to: initial_press
     id: button_1
-
-  - platform: event
-    event_type: initial_press
-    event_data:
-      entity_id: !input button_2_entity
+  - platform: state
+    entity_id: !input button_2_entity
+    attribute: event_type
+    to: initial_press
     id: button_2
-
-  - platform: event
-    event_type: initial_press
-    event_data:
-      entity_id: !input button_3_entity
+  - platform: state
+    entity_id: !input button_3_entity
+    attribute: event_type
+    to: initial_press
     id: button_3
-
-  - platform: event
-    event_type: initial_press
-    event_data:
-      entity_id: !input button_4_entity
+  - platform: state
+    entity_id: !input button_4_entity
+    attribute: event_type
+    to: initial_press
     id: button_4
 
 action:
