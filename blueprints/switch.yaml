@@ -77,25 +77,25 @@ max: 10
 
 trigger:
   - platform: event
-    event_type: short_press
+    event_type: initial_press
     event_data:
       entity_id: !input button_1_entity
     id: button_1
 
   - platform: event
-    event_type: short_press
+    event_type: initial_press
     event_data:
       entity_id: !input button_2_entity
     id: button_2
 
   - platform: event
-    event_type: short_press
+    event_type: initial_press
     event_data:
       entity_id: !input button_3_entity
     id: button_3
 
   - platform: event
-    event_type: short_press
+    event_type: initial_press
     event_data:
       entity_id: !input button_4_entity
     id: button_4
